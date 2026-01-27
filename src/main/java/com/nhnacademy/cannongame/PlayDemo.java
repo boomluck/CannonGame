@@ -24,21 +24,17 @@ public class PlayDemo extends Application {
         canvas = new Canvas(world.width, world.height);
         gc = canvas.getGraphicsContext2D();
 
-        //world.ball = new Ball(new Point(100, 500), 18, 18, new Vector(2, -4));
-        world.cannonBody = new CannonBody(100, 500, 50, 20, 0);
-
+        world.cannonBody = new CannonBody(100, 500, 50, 20, 0, 0);
 
         loop = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                gc.setFill(Color.WHITE);
-                gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-
+                clearCanvas();
                 world.update(gc);
             }
         };
 
-        //world.cannonBody.draw(gc);
+        world.cannonBody.draw(gc);
 
         pane = new Pane(canvas);
         scene = new Scene(pane);
@@ -48,31 +44,42 @@ public class PlayDemo extends Application {
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
                 case UP -> {
-                    world.cannonBody.angleGoUp(gc);
+                    world.cannonBody.angle -= 1;
                 }
                 case DOWN -> {
-                    world.cannonBody.angleGoDown(gc);
+                    world.cannonBody.angle += 1;
                 }
-                //case LEFT -> ;
-                //case RIGHT -> ;
                 case SPACE -> {
-                    double w = world.cannonBody.height - 2;
-                    double h = world.cannonBody.height - 2;
-                    double x = world.cannonBody.x + world.cannonBody.width - w;
-                    double y = world.cannonBody.y + world.cannonBody.height - w;
-                    double dx = Math.cos(world.cannonBody.angle);
-                    double dy = Math.sin(world.cannonBody.angle);
-
-                    world.ball = new Ball(new Point(x, y), w, h, new Vector(dx, dy));
-                    world.ball.fire(gc, world.ball);
+                    if (world.myTurn) {
+                        world.cannonBody.charging = true;
+                        if (world.cannonBody.power > 40) {
+                            world.cannonBody.power = 40;
+                            world.myTurn = false;
+                        }
+                        world.cannonBody.power += 1;
+                    }
                 }
             }
         });
 
-        //loop.start();
+        scene.setOnKeyReleased(event -> {
+            switch (event.getCode()) {
+                case SPACE -> {
+                    world.cannonBody.charging = false;
+                    world.ball = world.cannonBody.createCannonBall();
+                }
+            }
+        });
+
+        loop.start();
     }
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    public void clearCanvas() {
+        gc.setFill(Color.WHITE);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 }

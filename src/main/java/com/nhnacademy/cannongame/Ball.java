@@ -30,8 +30,10 @@ public class Ball {
         gc.fillOval(point.x, point.y, width, height);
     }
 
-    public void fire(GraphicsContext gc, Ball ball) {
-        gc.setFill(Color.RED);
-        gc.fillOval(ball.point.x, ball.point.y, ball.width, ball.height);
+    public boolean isOutOfBounds(World world) {
+        return point.x - width <= 0
+            || point.x + width >= world.width
+            || point.y - height <= 0
+            || point.y + height >= world.height;
     }
 }

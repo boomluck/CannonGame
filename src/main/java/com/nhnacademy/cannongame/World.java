@@ -5,8 +5,9 @@ import javafx.scene.canvas.GraphicsContext;
 public class World {
     double width;
     double height;
-    Ball ball;
+    Ball ball = null;
     CannonBody cannonBody;
+    boolean myTurn = true;
 
     public World(double width, double height) {
         this.width = width;
@@ -14,9 +15,15 @@ public class World {
     }
 
     public void update(GraphicsContext gc) {
-//        ball.translate();
-//        ball.accelerate();
-//        ball.draw(gc);
+        if (ball != null) {
+            ball.translate();
+            ball.accelerate();
+            ball.draw(gc);
+            if (ball.isOutOfBounds(this)) {
+                ball = null;
+                myTurn = true;
+            }
+        }
         cannonBody.draw(gc);
     }
 }

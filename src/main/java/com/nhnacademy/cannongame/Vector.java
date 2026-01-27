@@ -12,4 +12,8 @@ public class Vector {
     public Vector addition(Vector other) {
         return new Vector(dx + other.dx, dy + other.dy);
     }
+
+    public double magnitude() {
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 }
