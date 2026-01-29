@@ -4,36 +4,52 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class Ball {
-    Point point;
+    double x;
+    double y;
     double width;
     double height;
     Vector velocity;
 
-    public Ball(Point point, double width, double height, Vector velocity) {
-        this.point = point;
+    public Ball(double x, double y, double width, double height, Vector velocity) {
+        this.x = x;
+        this.y = y;
         this.width = width;
         this.height = height;
         this.velocity = velocity;
     }
 
     public void translate() {
-        point.x = point.x + velocity.dx;
-        point.y = point.y + velocity.dy;
+        x = x + velocity.dx;
+        y = y + velocity.dy;
     }
 
-    public void accelerate() {
-        velocity.dy = velocity.dy + (0.04);
+    public void applyGravity(double GRAVITY) {
+        velocity.dy = velocity.dy + GRAVITY;
     }
 
     public void draw(GraphicsContext gc) {
         gc.setFill(Color.RED);
-        gc.fillOval(point.x, point.y, width, height);
+        gc.fillOval(x, y, width, height);
     }
 
     public boolean isOutOfBounds(World world) {
-        return point.x - width <= 0
-            || point.x + width >= world.width
-            || point.y - height <= 0
-            || point.y + height >= world.height;
+        return x - width <= 0
+            || x + width >= world.width
+            || y - height <= 0
+            || y + height >= world.height;
+    }
+
+    public boolean isTouchingGround(World world) {
+        return y >= world.ground[(int) x];
+    }
+
+    public void causeExplosion(World world) {
+        for (int i = (int) (x - width); i < (int) (x + width); i++) {
+            double h = Math.sqrt(width * width - (i - x) * (i - x));
+            if (Double.isNaN(h)) {
+                h = 0;
+            }
+            world.ground[(int) i] += h;
+        }
     }
 }

@@ -21,10 +21,12 @@ public class PlayDemo extends Application {
     @Override
     public void start(Stage stage) {
         world = new World(800, 600);
+        world.ground = new double[(int) world.width];
+        world.createGround();
         canvas = new Canvas(world.width, world.height);
         gc = canvas.getGraphicsContext2D();
 
-        world.cannonBody = new CannonBody(100, 500, 50, 20, 0, 0);
+        world.cannonBody = new CannonBody(100, 500, 50, 20, new Vector(0, world.GRAVITY), 0, 0);
 
         loop = new AnimationTimer() {
             @Override
@@ -48,6 +50,14 @@ public class PlayDemo extends Application {
                 }
                 case DOWN -> {
                     world.cannonBody.angle += 1;
+                }
+                case LEFT -> {
+                    world.cannonBody.facing = Direction.LEFT;
+                    world.cannonBody.x -= 1;
+                }
+                case RIGHT -> {
+                    world.cannonBody.facing = Direction.RIGHT;
+                    world.cannonBody.x += 1;
                 }
                 case SPACE -> {
                     if (world.myTurn) {

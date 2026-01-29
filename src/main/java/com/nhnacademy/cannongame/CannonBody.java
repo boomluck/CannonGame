@@ -8,34 +8,60 @@ public class CannonBody {
     double y;
     double width;
     double height;
+    Vector velocity;
     double angle;
     double power;
     boolean charging = false;
+    Direction facing = Direction.RIGHT;
 
-
-    public CannonBody(double x, double y, double width, double height, double angle, double power){
+    public CannonBody(double x, double y, double width, double height, Vector velocity, double angle, double power){
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.velocity = velocity;
         this.angle = angle;
         this.power = power;
+    }
+
+    public void translate() {
+        x = x + velocity.dx;
+        y = y + velocity.dy;
+    }
+
+    public void applyGravity(double GRAVITY) {
+        velocity.dy = velocity.dy + GRAVITY;
+    }
+
+    public boolean isTouchingGround(World world) {
+        return y + height * 3 / 2 >= world.ground[(int) x];
+    }
+
+    public void climbUp(World world) {
+        double diff = (y + height * 3 / 2) - world.ground[(int) x];
+        if (isTouchingGround(world) && diff >= 0) {
+            y = y - diff;
+        }
     }
 
     public void draw(GraphicsContext gc) {
         gc.save();
 
-        gc.translate(x, y + height / 2);
+        gc.translate(x, y + height);
+
+        if(facing == Direction.LEFT) {
+            gc.scale(-1, 1);
+        }
+
         gc.rotate(angle);
-        gc.translate(-x, -(y + height / 2));
 
         gc.setFill(Color.GRAY);
-        gc.fillRect(x, y, width, height);
-
-        gc.restore();
+        gc.fillRect(0, -height, width, height);
 
         gc.setFill(Color.BLACK);
-        gc.fillOval(x - height / 2, y + height / 2, height, height);
+        gc.fillOval(- height / 2, - height / 2, height, height);
+
+        gc.restore();
 
         if (charging) {
             drawCharging(gc);
@@ -48,13 +74,20 @@ public class CannonBody {
         double h = height - 2;
         double rad = Math.toRadians(angle);
         double ballX = x + width * Math.cos(rad);
-        double ballY = y + height / 2 + width * Math.sin(rad); // 계산은 맞으나 포구가 회전되어 있어서 시각적으로 완벽히 일치하지 않음
+        double ballY = y + height / 2 + width * Math.sin(rad);
+
+        if (facing == Direction.LEFT) {
+            rad = Math.toRadians(180 - angle);
+            ballX = x - width * Math.cos(rad);
+            ballY = y + height / 2 + width * Math.sin(rad);
+        }
+
         double dx = power * k * Math.cos(rad);
         double dy = power * k * Math.sin(rad);
 
         power = 0;
 
-        return new Ball(new Point(ballX, ballY), w, h, new Vector(dx, dy));
+        return new Ball(ballX, ballY, w, h, new Vector(dx, dy));
     }
 
     public void drawCharging(GraphicsContext gc) {
