@@ -2,8 +2,10 @@ package com.nhnacademy.cannongame;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
-public class CannonBody {
+public class Cannon {
     double x;
     double y;
     double width;
@@ -13,8 +15,9 @@ public class CannonBody {
     double power;
     boolean charging = false;
     Direction facing = Direction.RIGHT;
+    boolean myTurn = false;
 
-    public CannonBody(double x, double y, double width, double height, Vector velocity, double angle, double power){
+    public Cannon(double x, double y, double width, double height, Vector velocity, double angle, double power, Direction facing, boolean myTurn){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -22,6 +25,8 @@ public class CannonBody {
         this.velocity = velocity;
         this.angle = angle;
         this.power = power;
+        this.facing = facing;
+        this.myTurn = myTurn;
     }
 
     public void translate() {
@@ -78,7 +83,7 @@ public class CannonBody {
 
         if (facing == Direction.LEFT) {
             rad = Math.toRadians(180 - angle);
-            ballX = x - width * Math.cos(rad);
+            ballX = x + width * Math.cos(rad);
             ballY = y + height / 2 + width * Math.sin(rad);
         }
 
@@ -91,7 +96,24 @@ public class CannonBody {
     }
 
     public void drawCharging(GraphicsContext gc) {
+        double printX = x;
+        double printY = y + 25;
+        if (facing == Direction.LEFT) {
+            printX = x - width;
+        }
+
         gc.setFill(Color.LIME);
-        gc.fillRect(x, y + 25, power, 10);
+        gc.fillRect(printX, printY, power, 10);
+    }
+
+    public void drawPointer(GraphicsContext gc) {
+        double printX = x;
+        double printY = y - 35;
+        if (facing == Direction.LEFT) {
+            printX = x - width;
+        }
+
+        gc.setFont(Font.font("Apple Color Emoji", 32));
+        gc.fillText("👇", printX, printY);
     }
 }

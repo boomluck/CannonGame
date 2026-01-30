@@ -26,60 +26,22 @@ public class PlayDemo extends Application {
         canvas = new Canvas(world.width, world.height);
         gc = canvas.getGraphicsContext2D();
 
-        world.cannonBody = new CannonBody(100, 500, 50, 20, new Vector(0, world.GRAVITY), 0, 0);
+        world.cannons.add(new Cannon(100, 500, 50, 20, new Vector(0, world.GRAVITY), 0, 0, Direction.RIGHT, true));
+        world.cannons.add(new Cannon(700, 500, 50, 20, new Vector(0, world.GRAVITY), 0, 0, Direction.LEFT, false));
 
         loop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 clearCanvas();
+                world.setKeyEvent(scene);
                 world.update(gc);
             }
         };
-
-        world.cannonBody.draw(gc);
 
         pane = new Pane(canvas);
         scene = new Scene(pane);
         stage.setScene(scene);
         stage.show();
-
-        scene.setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case UP -> {
-                    world.cannonBody.angle -= 1;
-                }
-                case DOWN -> {
-                    world.cannonBody.angle += 1;
-                }
-                case LEFT -> {
-                    world.cannonBody.facing = Direction.LEFT;
-                    world.cannonBody.x -= 1;
-                }
-                case RIGHT -> {
-                    world.cannonBody.facing = Direction.RIGHT;
-                    world.cannonBody.x += 1;
-                }
-                case SPACE -> {
-                    if (world.myTurn) {
-                        world.cannonBody.charging = true;
-                        if (world.cannonBody.power > 40) {
-                            world.cannonBody.power = 40;
-                            world.myTurn = false;
-                        }
-                        world.cannonBody.power += 1;
-                    }
-                }
-            }
-        });
-
-        scene.setOnKeyReleased(event -> {
-            switch (event.getCode()) {
-                case SPACE -> {
-                    world.cannonBody.charging = false;
-                    world.ball = world.cannonBody.createCannonBall();
-                }
-            }
-        });
 
         loop.start();
     }
@@ -92,4 +54,6 @@ public class PlayDemo extends Application {
         gc.setFill(Color.WHITE);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
+
+
 }
