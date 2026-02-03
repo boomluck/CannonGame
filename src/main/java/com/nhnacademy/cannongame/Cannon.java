@@ -3,7 +3,6 @@ package com.nhnacademy.cannongame;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
 public class Cannon {
     double x;
@@ -13,11 +12,15 @@ public class Cannon {
     Vector velocity;
     double angle;
     double power;
-    boolean charging = false;
     Direction facing = Direction.RIGHT;
     boolean myTurn = false;
+    double maxFuel;
+    double currentFuel;
 
-    public Cannon(double x, double y, double width, double height, Vector velocity, double angle, double power, Direction facing, boolean myTurn){
+    boolean charging = false;
+    Timer timer = null;
+
+    public Cannon(double x, double y, double width, double height, Vector velocity, double angle, double power, double maxFuel, double currentFuel, Direction facing, boolean myTurn){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -25,6 +28,8 @@ public class Cannon {
         this.velocity = velocity;
         this.angle = angle;
         this.power = power;
+        this.maxFuel = maxFuel;
+        this.currentFuel = currentFuel;
         this.facing = facing;
         this.myTurn = myTurn;
     }
@@ -49,7 +54,7 @@ public class Cannon {
         }
     }
 
-    public void draw(GraphicsContext gc) {
+    public void draw(GraphicsContext gc, World world) {
         gc.save();
 
         gc.translate(x, y + height);
@@ -68,7 +73,7 @@ public class Cannon {
 
         gc.restore();
 
-        if (charging) {
+        if (charging && world.ball == null) {
             drawCharging(gc);
         }
     }
@@ -115,5 +120,29 @@ public class Cannon {
 
         gc.setFont(Font.font("Apple Color Emoji", 32));
         gc.fillText("👇", printX, printY);
+    }
+
+    public void drawTimer(GraphicsContext gc, long now, World world) {
+        if (timer == null) {
+            timer = new Timer(30);
+        }
+
+        double remain = timer.remainingSeconds(now);
+        String text = Integer.toString((int) Math.ceil(remain));
+
+        double printX = x;
+        double printY = y - 100;
+        if (facing == Direction.LEFT) {
+            printX = x - width;
+        }
+
+        gc.setFill(Color.BLACK);
+        gc.setFont(Font.font(24));
+        gc.fillText(text, printX, printY);
+
+        if (remain < 0) {
+            timer = null;
+            world.turnOver();
+        }
     }
 }

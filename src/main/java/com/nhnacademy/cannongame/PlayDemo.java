@@ -26,15 +26,15 @@ public class PlayDemo extends Application {
         canvas = new Canvas(world.width, world.height);
         gc = canvas.getGraphicsContext2D();
 
-        world.cannons.add(new Cannon(100, 500, 50, 20, new Vector(0, world.GRAVITY), 0, 0, Direction.RIGHT, true));
-        world.cannons.add(new Cannon(700, 500, 50, 20, new Vector(0, world.GRAVITY), 0, 0, Direction.LEFT, false));
+        world.cannons.add(new Cannon(100, 500, 50, 20, new Vector(0, world.GRAVITY), 0, 0, 50, 50, Direction.RIGHT, true));
+        world.cannons.add(new Cannon(700, 500, 50, 20, new Vector(0, world.GRAVITY), 0, 0, 50, 50, Direction.LEFT, false));
 
         loop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 clearCanvas();
                 world.setKeyEvent(scene);
-                world.update(gc);
+                world.update(gc, now);
             }
         };
 

@@ -3,8 +3,6 @@ package com.nhnacademy.cannongame;
 import javafx.scene.Scene;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +19,7 @@ public class World {
     List<Cannon> cannons = new ArrayList<>();
 
     int player = 0;
-    int timeLeft = 30;
+    boolean busy = false;
 
     public World(double width, double height) {
         this.width = width;
@@ -43,79 +41,72 @@ public class World {
     }
 
     public void turnOver() {
+        refillFuel();
+
         cannons.get(player).myTurn = false;
         player = (player + 1) % cannons.size();
         cannons.get(player).myTurn = true;
     }
 
-    public void Timer(long now) {
-        long startTime = System.nanoTime();
-        long duration = 30_000_000_000L;
-
-        long elapsed = now - startTime;
-
-        if (elapsed >= duration) {
-            turnOver();
-        }
-
-        double secondsLeft = (duration - elapsed) / 1_000_000_000.0;
+    void refillFuel() {
+        cannons.get(player).currentFuel = cannons.get(player).maxFuel;
     }
 
     public void setKeyEvent(Scene scene) {
         scene.setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case UP -> {
-                    cannons.get(player).angle -= 1;
-                }
-                case DOWN -> {
-                    cannons.get(player).angle += 1;
-                }
-                case LEFT -> {
-                    cannons.get(player).facing = Direction.LEFT;
-                    cannons.get(player).x -= 1;
-                }
-                case RIGHT -> {
-                    cannons.get(player).facing = Direction.RIGHT;
-                    cannons.get(player).x += 1;
-                }
-                case SPACE -> {
-                    if (cannons.get(player).myTurn) {
-                        cannons.get(player).charging = true;
-                        if (cannons.get(player).power > 40) {
-                            cannons.get(player).power = 40;
+            if (!busy) {
+                switch (event.getCode()) {
+                    case UP -> {
+                        cannons.get(player).angle -= 1;
+                    }
+                    case DOWN -> {
+                        cannons.get(player).angle += 1;
+                    }
+                    case LEFT -> {
+                        cannons.get(player).facing = Direction.LEFT;
+                        if (cannons.get(player).currentFuel > 0) {
+                            cannons.get(player).x -= 1;
+                            cannons.get(player).currentFuel -= 1;
                         }
-                        cannons.get(player).power += 1;
+                    }
+                    case RIGHT -> {
+                        cannons.get(player).facing = Direction.RIGHT;
+                        if (cannons.get(player).currentFuel > 0) {
+                            cannons.get(player).x += 1;
+                            cannons.get(player).currentFuel -= 1;
+                        }
+                    }
+                    case SPACE -> {
+                        if (cannons.get(player).myTurn && ball == null) {
+                            cannons.get(player).charging = true;
+                            if (cannons.get(player).power > 40) {
+                                cannons.get(player).power = 40;
+                                ball = cannons.get(player).createCannonBall();
+                            }
+                            cannons.get(player).power += 1;
+                        }
                     }
                 }
             }
         });
 
         scene.setOnKeyReleased(event -> {
-            switch (event.getCode()) {
-                case SPACE -> {
-                    cannons.get(player).charging = false;
-                    ball = cannons.get(player).createCannonBall();
+            if (!busy) {
+                switch (event.getCode()) {
+                    case SPACE -> {
+                        cannons.get(player).charging = false;
+                        if (ball == null) {
+                            ball = cannons.get(player).createCannonBall();
+                        }
+                    }
                 }
             }
         });
     }
 
-    public void drawTimer(GraphicsContext gc) {
-        String text = "30"; //Integer.toString(secondsLeft);
-        Text textNode = new Text(text);
-        textNode.setFont(Font.font(50));
-
-        double textWidth = textNode.getLayoutBounds().getWidth();
-
-        gc.setFill(Color.BLACK);
-        gc.fillText(text, width / 2 - textWidth / 2, 100);
-    }
-
-    public void update(GraphicsContext gc) {
+    public void update(GraphicsContext gc, long now) {
         // 월드
         drawGround(gc);
-        new Timer(30);
-        drawTimer(gc);
 
         // 캐논
         for (Cannon cannon : cannons) {
@@ -123,15 +114,17 @@ public class World {
                 cannon.translate();
                 cannon.applyGravity(GRAVITY);
             }
-            if (cannon.myTurn) {
+            if (cannon.myTurn && ball == null) {
                 cannon.drawPointer(gc);
+                cannon.drawTimer(gc, now, this);
             }
             cannon.climbUp(this);
-            cannon.draw(gc);
+            cannon.draw(gc, this);
         }
 
         // 포탄
         if (ball != null) {
+            busy = true;
             ball.translate();
             ball.applyGravity(GRAVITY);
             ball.draw(gc);
@@ -141,6 +134,7 @@ public class World {
                     ball.causeExplosion(this);
                 }
                 ball = null;
+                busy = false;
                 turnOver();
             }
         }
